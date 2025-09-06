@@ -1,0 +1,41 @@
+#compiled output
+/api/node_modules
+/api/dist
+
+# Environment variables
+/api/.env
+/api/.env.*
+
+#Logs
+/api/logs
+/api/*.log
+/api/pnpm-debug.log*
+/api/npm-debug.log*
+/api/yarn-debug.log*
+/api/yarn-error.log*
+/api/lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/api/coverage
+/api/.nyc_output
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+/generated/prisma
