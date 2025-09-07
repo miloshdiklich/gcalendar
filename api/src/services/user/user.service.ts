@@ -2,19 +2,22 @@ import { prisma } from '@/db/prisma';
 import { encrypt } from '@/utils/crypto';
 import type { Tokens } from '@/services/auth/google.service';
 import type { oauth2_v2 } from 'googleapis';
+import { GoogleUserData } from '@/types/GoogleUserData';
+import { TokenData } from '@/types/TokenData';
+import { UserProfile } from '@/types/UserProfile';
 
 type GoogleUserInfo = {
   data: oauth2_v2.Schema$Userinfo;
 };
 
-export const createTokenData = (tokens: Tokens) => ({
+export const createTokenData = (tokens: Tokens): TokenData => ({
   refreshTokenEnc: encrypt(String(tokens.refresh_token ?? '')),
   accessTokenEnc: tokens.access_token ? encrypt(tokens.access_token) : undefined,
   accessTokenExp: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
   scope: tokens.scope ?? null,
 });
 
-export const parseGoogleUserInfo = (userInfo: GoogleUserInfo) => {
+export const parseGoogleUserInfo = (userInfo: GoogleUserInfo): GoogleUserData => {
   const googleId = String(userInfo.data.id || '');
   const email = String(userInfo.data.email || '');
   const displayName = String(userInfo.data.name || '');
@@ -27,33 +30,34 @@ export const parseGoogleUserInfo = (userInfo: GoogleUserInfo) => {
   return { googleId, email, displayName, photoUrl };
 };
 
-export const upsertUserToken = async (userId: string, tokens: Tokens) => {
-  const tokenData = createTokenData(tokens);
-  
-  return prisma.token.upsert({
-    where: { userId },
-    create: {
-      userId,
-      ...tokenData
-    },
-    update: tokenData,
-  });
-};
-
 export const upsertGoogleUser = async (userInfo: GoogleUserInfo, tokens: Tokens) => {
   const userData = parseGoogleUserInfo(userInfo);
+  const tokenData = createTokenData(tokens);
   
-  const user = await prisma.user.upsert({
+  return await prisma.user.upsert({
     where: { googleId: userData.googleId },
-    create: userData,
-    update: userData,
+    create: {
+      ...userData,
+      tokens: {
+        create: tokenData,
+      }
+    },
+    update: {
+      ...userData,
+      tokens: {
+        upsert: {
+          create: tokenData,
+          update: tokenData,
+        },
+      },
+    },
+    include: {
+      tokens: true,
+    }
   });
-
-  await upsertUserToken(user.id, tokens);
-  return user;
 };
 
-export const findUserById = async (userId: string) => {
+export const findUserById = async (userId: string): Promise<UserProfile | null> => {
   return prisma.user.findUnique({
     where: { id: userId },
     select: {

@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { google } from 'googleapis';
 import { env } from '@/config/env';
-import { prisma } from '@/db/prisma';
-import { encrypt } from '@/utils/crypto';
 import { asyncH } from '@/middleware/error';
 import {
   getAuthUrl,
