@@ -5,6 +5,8 @@
 # Environment variables
 /api/.env
 /api/.env.local
+/web/.env
+/web/.env.local
 
 #Logs
 /api/logs
