@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const schema = z.object({
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
   API_PORT: z.coerce.number().default(4000),
   CORS_ORIGIN: z.string().trim().regex(/^https?:\/\/.+/).default('http://localhost:5173'),
   SESSION_COOKIE_NAME: z.string().min(1).default('gcal_sid'),
