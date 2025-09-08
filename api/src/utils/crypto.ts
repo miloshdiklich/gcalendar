@@ -1,5 +1,5 @@
 import * as crypto from "node:crypto";
-import { env } from "../config/env";
+import { env } from "@/config/env";
 
 const key = crypto.createHash("sha256").update(env.TOKEN_ENCRYPTION_KEY).digest();
 
