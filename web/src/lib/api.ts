@@ -13,7 +13,7 @@ const handle = async (res: Response) => {
 };
 
 export const getEvents = async (rangeDays = 7) => {
-  const res = await fetch(`${API.base}/api/events?rangeDays=${rangeDays}`, {
+  const res = await fetch(`${API.base}/events?rangeDays=${rangeDays}`, {
     credentials: "include",
   }).then(handle);
   const data = (await res.json()) as { events: any[] };
@@ -21,7 +21,7 @@ export const getEvents = async (rangeDays = 7) => {
 };
 
 export const refreshEvents = async () => {
-  await fetch(`${API.base}/api/events/refresh`, {
+  await fetch(`${API.base}/events/refresh`, {
     method: "POST",
     credentials: "include",
   }).then(handle);
@@ -34,7 +34,7 @@ export const createEvent = async (input: {
   endTime: string;
   timeZone?: string;
 }) => {
-  await fetch(`${API.base}/api/events`, {
+  await fetch(`${API.base}/events`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

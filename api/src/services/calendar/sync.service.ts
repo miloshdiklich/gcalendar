@@ -1,7 +1,7 @@
 import { calendar_v3 } from 'googleapis';
 import { addMonths, startOfDay, endOfDay } from 'date-fns';
-import { prisma } from '../db/prisma';
-import { getAuthClient } from './google';
+import { prisma } from '@/db/prisma';
+import { getAuthClient } from '@/services/auth/google.service';
 import type { Event } from '@prisma/client';
 
 const iso = (date: Date): string => date.toISOString();

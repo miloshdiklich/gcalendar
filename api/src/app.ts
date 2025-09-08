@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { env } from '@/config/env';
 import { authRouter } from '@/routes/auth';
+import { eventsRouter } from '@/routes/events';
 
 /**
  * Build and configure the Express application
@@ -19,6 +20,9 @@ export const buildApp = (): Express => {
   
   // Auth routes
   app.use('/auth', authRouter);
+  
+  // Event routes
+  app.use('/events', eventsRouter);
   
   return app;
 }

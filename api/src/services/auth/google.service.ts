@@ -10,7 +10,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 export type Tokens = {
-  access_token: string;
+  access_token?: string;
   refresh_token?: string;
   scope?: string;
   expiry_date?: number;
@@ -24,41 +24,6 @@ export const setNewTokens = async(tokens: Tokens) => {
   oauth2Client.setCredentials(tokens);
   return oauth2Client;
 }
-
-export const getOAuth2Client = async(userId?: string, tokens?: Tokens) => {
-  if (!userId && tokens) {
-    console.log('Using provided tokens for OAuth2 client');
-    oauth2Client.setCredentials(tokens);
-    return oauth2Client;
-  }
-  
-  const token = await prisma.token.findUnique({ where: { userId } });
-  if (!token) throw new Error('No refresh token found');
-  
-  const stored = {
-    refresh_token: decrypt(token.refreshTokenEnc),
-    access_token: decrypt(token.accessTokenEnc || ''),
-    expiry_date: token.accessTokenExp?.getTime(),
-    scope: token.scope ?? undefined,
-  }
-  oauth2Client.setCredentials(stored);
-  
-  if (isExpired(stored.expiry_date)) {
-    const newTokens = await oauth2Client.refreshAccessToken();
-    const t = newTokens.credentials;
-    await prisma.token.update({
-      where: { userId },
-      data: {
-        accessTokenEnc: t.access_token ? encrypt(t.access_token) : undefined,
-        accessTokenExp: t.expiry_date ? new Date(t.expiry_date) : null,
-        scope: t.scope ?? null,
-      },
-    });
-    oauth2Client.setCredentials(t);
-  }
-  
-  return oauth2Client;
-};
 
 export const getAuthClient = async(userId: string) => {
   const token = await prisma.token.findUnique({ where: { userId } });
@@ -85,6 +50,46 @@ export const getAuthClient = async(userId: string) => {
     });
     oauth2Client.setCredentials(t);
   }
+  return google.calendar({ version: 'v3', auth: oauth2Client });
+};
+
+export const getCalendarClientForUser = async (userId: string) => {
+  // Load stored tokens
+  const tokenRow = await prisma.token.findUnique({ where: { userId } });
+  if (!tokenRow) throw new Error('No tokens stored for user');
+  
+  const creds: Tokens = {
+    refresh_token: decrypt(tokenRow.refreshTokenEnc),
+    access_token: tokenRow.accessTokenEnc ? decrypt(tokenRow.accessTokenEnc) : undefined,
+    expiry_date: tokenRow.accessTokenExp?.getTime() ?? undefined,
+    scope: tokenRow.scope ?? undefined,
+  };
+  
+  // Set known credentials
+  oauth2Client.setCredentials(creds);
+  
+  // Ensure we have a valid access token
+  if (!creds.access_token || isExpired(creds.expiry_date)) {
+    const { credentials } = await oauth2Client.refreshAccessToken();
+    const next = credentials as Tokens;
+    
+    // Persist updated tokens
+    await prisma.token.update({
+      where: { userId },
+      data: {
+        accessTokenEnc: next.access_token ? encrypt(next.access_token) : null,
+        accessTokenExp: next.expiry_date ? new Date(next.expiry_date) : null,
+        scope: next.scope ?? tokenRow.scope,
+        refreshTokenEnc: next.refresh_token
+          ? encrypt(next.refresh_token)
+          : tokenRow.refreshTokenEnc,
+      },
+    });
+    
+    oauth2Client.setCredentials(next);
+  }
+  
+  // Return an authenticated Calendar client
   return google.calendar({ version: 'v3', auth: oauth2Client });
 };
 
