@@ -4,6 +4,7 @@ import {createEvent, getEvents, refreshEvents} from "../lib/api.ts";
 import EventList from "../components/EventList.tsx";
 import {groupEvents} from "../lib/grouping.ts";
 import AddEventForm from "../components/AddEventForm.tsx";
+import TopBar from "../components/TopBar.tsx";
 
 const Events = () => {
   const [days, setDays] = useState<number>(7);
@@ -39,6 +40,7 @@ const Events = () => {
   
   return (
     <div style={{ maxWidth: 800, margin: "2rem auto" }}>
+      <TopBar />
       <header style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <h2 style={{ marginRight: "auto" }}>My Google Calendar Events</h2>
         <select value={days} onChange={(e) => setDays(Number(e.target.value))}>

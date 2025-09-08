@@ -41,3 +41,19 @@ export const createEvent = async (input: {
     body: JSON.stringify(input),
   }).then(handle);
 };
+
+export const getMe = async () => {
+  const res = await fetch(`${API.base}/auth/me`, { credentials: "include" });
+  if (res.status === 401) { window.location.href = "/login"; throw new Error("Unauthorized"); }
+  if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
+  return (await res.json()) as { user: { displayName: string; email: string; photoUrl: string | null } };
+};
+
+export const logout = async () => {
+  const res = await fetch(`${API.base}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
+};
+
