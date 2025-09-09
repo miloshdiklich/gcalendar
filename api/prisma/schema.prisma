@@ -32,6 +32,7 @@ model Token {
   refreshTokenEnc String
   accessTokenEnc  String?
   accessTokenExp  DateTime?
+  // would be nicer if this was array
   scope           String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

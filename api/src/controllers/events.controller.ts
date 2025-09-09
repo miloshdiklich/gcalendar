@@ -5,12 +5,14 @@ import { asyncH } from '@/middleware/error';
 import { getCalendarClientForUser } from '@/services/auth/google.service';
 import { syncThreeMonths } from '@/services/calendar/sync.service';
 
+// better to have validators somewhere else
 // Query: GET /api/events?rangeDays=1|7|30 (default 7)
 const ListQuery = z.object({ rangeDays: z.coerce.number().default(7) });
 
 // Body: POST /api/events
 const CreateEvent = z.object({
   summary: z.string().min(1),
+  // these could have more specialized validators
   date: z.string(),      // YYYY-MM-DD
   startTime: z.string(), // HH:mm
   endTime: z.string(),   // HH:mm
@@ -18,11 +20,15 @@ const CreateEvent = z.object({
 });
 
 export const list = asyncH(async (req: AuthedRequest, res) => {
+  // missing validation middleware. if rangeDays is not a number it crashes
   const { rangeDays } = ListQuery.parse(req.query);
   const userId = String(req.userId);
   const now = new Date();
+  // better to use date-fns or similar library
   const to = new Date(now.getTime() + rangeDays * 24 * 60 * 60 * 1000);
   
+  // Would be better if it was in a repository
+  // What if there are 1000 events?
   const rows = await prisma.event.findMany({
     where: { userId, startTime: { gte: now, lte: to } },
     orderBy: { startTime: 'asc' },
@@ -35,6 +41,7 @@ export const create = asyncH(async (req: AuthedRequest, res) => {
   const body = CreateEvent.parse(req.body);
   const userId = String(req.userId);
   
+  // This would crash since startTime is not validated properly
   const startIso = new Date(`${body.date}T${body.startTime}:00`).toISOString();
   const endIso   = new Date(`${body.date}T${body.endTime}:00`).toISOString();
   
@@ -49,8 +56,12 @@ export const create = asyncH(async (req: AuthedRequest, res) => {
   });
   
   const e = created.data;
+  // suggestion to have custom errors like throw new BadGatewayError('Bad Google response')
   if (!e.id || !e.start || !e.end) throw Object.assign(new Error('Bad Google response'), { status: 502 });
   
+  // what if something fails at this point?
+
+  // again would be better in a repository and without repetition
   await prisma.event.upsert({
     where: { googleEventId: e.id },
     create: {

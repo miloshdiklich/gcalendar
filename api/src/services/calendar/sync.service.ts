@@ -4,6 +4,7 @@ import { prisma } from '@/db/prisma';
 import { getAuthClient } from '@/services/auth/google.service';
 import type { Event } from '@prisma/client';
 
+// interesting
 const iso = (date: Date): string => date.toISOString();
 
 /**
@@ -36,6 +37,7 @@ export const syncThreeMonths = async(userId: string): Promise<void> => {
     
     const events = response.data.items ?? [];
     
+    // what if an event was deleted between refreshes?
     await Promise.all(
       events.map(async(event) => {
         const start = event.start?.dateTime || event.start?.date;
@@ -64,6 +66,7 @@ export const syncThreeMonths = async(userId: string): Promise<void> => {
     }
   };
   
+  // wow recursion
   await fetchAndProcessEvents();
 };
 
@@ -83,6 +86,7 @@ export const listEventsRange = async (
     orderBy: { startTime: 'asc' },
   });
   
+  // could this have been done in the DB query directly? - json_build_object
   return rows.map((row: Event) => ({
     id: row.googleEventId,
     summary: row.summary,

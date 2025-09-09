@@ -23,6 +23,7 @@ export const callback = asyncH(async(req, res) => {
   const me = await oauth2Service.userinfo.get({ auth: oauth2Client });
   
   const user = await upsertGoogleUser(me, tokens);
+  // missing initial fetch of events
   
   const session = jwt.sign({ sub: user.id }, env.SESSION_JWT_SECRET, { expiresIn: '1d' });
   res.cookie(env.SESSION_COOKIE_NAME, session, {

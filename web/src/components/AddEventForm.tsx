@@ -11,6 +11,7 @@ const AddEventForm = ({
     timeZone?: string
   }) => Promise<void>;
 }) => {
+  // would be nicer to use react-hook-form or something similar
   const [summary, setSummary] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState("09:00");

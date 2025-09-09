@@ -2,6 +2,7 @@ export const API = {
   base: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000",
 };
 
+// better to use something like axios with interceptors
 const handle = async (res: Response) => {
   if (res.status === 401) {
     // Not authenticated: bounce to login route
@@ -12,6 +13,7 @@ const handle = async (res: Response) => {
   return res;
 };
 
+// types would be nice
 export const getEvents = async (rangeDays = 7) => {
   const res = await fetch(`${API.base}/events?rangeDays=${rangeDays}`, {
     credentials: "include",

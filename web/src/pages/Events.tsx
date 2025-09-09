@@ -8,11 +8,13 @@ import TopBar from "../components/TopBar.tsx";
 
 const Events = () => {
   const [days, setDays] = useState<number>(7);
+  // better typing
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   
+  // react-query would be nice here
   const fetchNow = async (d = days) => {
     setLoading(true);
     try {
@@ -23,6 +25,7 @@ const Events = () => {
       const msg = (e as Error).message;
       setError(msg);
       // if API client already redirected on 401, this is redundant—but safe:
+      // this should be handled globally
       if (msg.toLowerCase().includes("unauthorized")) {
         navigate("/login");
       }
@@ -48,6 +51,7 @@ const Events = () => {
           <option value={7}>7 days</option>
           <option value={30}>30 days</option>
         </select>
+        {/* Would be nice if stuff worked without clicking reload */}
         <button onClick={() => fetchNow(days)}>Reload</button>
         <button
           onClick={async () => {

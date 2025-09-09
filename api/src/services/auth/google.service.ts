@@ -37,9 +37,11 @@ export const getAuthClient = async(userId: string) => {
   }
   oauth2Client.setCredentials(stored);
   
+  // Is there a race condition here?
   if (isExpired(stored.expiry_date)) {
     const newTokens = await oauth2Client.refreshAccessToken();
     const t = newTokens.credentials;
+    // should refresh token be updated too?
     await prisma.token.update({
       where: { userId },
       data: {
@@ -48,6 +50,7 @@ export const getAuthClient = async(userId: string) => {
         scope: t.scope ?? null,
       },
     });
+    // this overwrites the singleton and can cause race conditions
     oauth2Client.setCredentials(t);
   }
   return google.calendar({ version: 'v3', auth: oauth2Client });
@@ -71,6 +74,7 @@ export const getCalendarClientForUser = async (userId: string) => {
   // Ensure we have a valid access token
   if (!creds.access_token || isExpired(creds.expiry_date)) {
     const { credentials } = await oauth2Client.refreshAccessToken();
+    // why cast when already typed
     const next = credentials as Tokens;
     
     // Persist updated tokens

@@ -18,6 +18,7 @@ const TopBar = () => {
         const { user } = await getMe();
         setMe(user);
       } catch {
+        // not exactly great practice to silently catch errors
         // getMe already redirects on 401
       } finally {
         setLoading(false);
